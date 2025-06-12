@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carrinho | Urban Kicks</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <div id="mensagem"></div>
+
+  <header>
+    <h1>Urban Kicks</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="nike.html">Nike</a></li>
+        <li><a href="adidas.html">Adidas</a></li>
+        <li><a href="newbalance.html">New Balance</a></li>
+        <li><a href="carrinho.html">Carrinho</a></li>
+        <li><a href="contato.html">Contato</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h2>🛒 Seu Carrinho</h2>
+    <div id="itens-carrinho">Carregando...</div>
+
+    <h3>✅ Finalizar Compra</h3>
+    <form id="checkout-form">
+      <input type="text" name="nome" placeholder="Nome completo" required />
+      <input type="text" name="morada" placeholder="Morada" required />
+      <select name="pagamento" required>
+        <option value="">Forma de pagamento</option>
+        <option value="mbway">MB WAY</option>
+        <option value="paypal">PayPal</option>
+        <option value="cartao">Cartão de crédito</option>
+      </select>
+      <button type="submit">Finalizar Compra</button>
+    </form>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://tdltuonnhxwfynyvbqae.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkbHR1b25uaHh3ZnlueXZicWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE5NjU3MTIsImV4cCI6MjA1NzU0MTcxMn0.PLHJyCX6qPjKHrpp8oK2caLEqxMNRvsp5iaaY0lst9o";
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function mostrarMensagem(texto, tipo = "sucesso") {
+      const msg = document.getElementById("mensagem");
+      msg.className = tipo === "erro" ? "mensagem-erro" : "mensagem-sucesso";
+      msg.innerText = texto;
+      msg.style.display = "block";
+      setTimeout(() => { msg.style.display = "none"; }, 3000);
+    }
+
+    const carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+    const container = document.getElementById("itens-carrinho");
+
+    if (carrinho.length === 0) {
+      container.innerHTML = "<p>Seu carrinho está vazio.</p>";
+    } else {
+      container.innerHTML = "";
+      carrinho.forEach(prod => {
+        container.innerHTML += `<p><strong>${prod.nome}</strong> - €${prod.preco.toFixed(2)}</p>`;
+      });
+    }
+
+    document.getElementById("checkout-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const nome = form.get("nome");
+      const morada = form.get("morada");
+      const pagamento = form.get("pagamento");
+      const botao = e.submitter;
+      const textoOriginal = botao.innerText;
+
+      botao.disabled = true;
+      botao.innerText = "Processando...";
+
+      const pedidos = carrinho.map(produto => ({
+        nome,
+        morada,
+        pagamento,
+        produto_id: produto.id,
+        produto_nome: produto.nome,
+        preco: produto.preco
+      }));
+
+      const { error } = await supabaseClient.from("compras").insert(pedidos);
+
+      botao.disabled = false;
+      botao.innerText = textoOriginal;
+
+      if (error) {
+        mostrarMensagem("❌ Erro ao finalizar a compra.", "erro");
+      } else {
+        mostrarMensagem("✅ Compra finalizada com sucesso!", "sucesso");
+        localStorage.removeItem("carrinho");
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 2000);
+      }
+    });
+  </script>
+</body>
+</html>
