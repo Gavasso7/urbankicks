@@ -26,14 +26,23 @@
     <h2 class="section-title">New Balance</h2>
     <div id="lista-produtos" class="produtos-grid">Carregando produtos...</div>
   </main>
-
+<div id="mensagem" class="mensagem-popup" style="display: none;"></div>
   <script>
     const SUPABASE_URL = "https://tdltuonnhxwfynyvbqae.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkbHR1b25uaHh3ZnlueXZicWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE5NjU3MTIsImV4cCI6MjA1NzU0MTcxMn0.PLHJyCX6qPjKHrpp8oK2caLEqxMNRvsp5iaaY0lst9o";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkbHR1b25uaHh3ZnlueXZicWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE5NjU3MTIsImV4cCI6MjA1NzU0MTcxMn0.PLHJyCX6qPjKHrpp8oK2caLEqxMNRvsp5iaaY0lst9o"; // sua chave
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // ✅ AQUI: a função deve ser declarada antes do uso
+    function mostrarMensagem(texto, tipo = "sucesso") {
+      const msg = document.getElementById("mensagem");
+      msg.innerText = texto;
+      msg.className = tipo === "erro" ? "mensagem-popup erro" : "mensagem-popup sucesso";
+      msg.style.display = "block";
+      setTimeout(() => { msg.style.display = "none"; }, 3000);
+    }
+
     async function listarProdutos() {
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from("produtos")
         .select("id, nome, preco, imagens")
         .in("nome", ["New Balance 550", "New Balance 530", "New Balance 9060"]);
