@@ -58,20 +58,23 @@
       if (event.target.classList.contains("comprar-btn")) {
         const produtoId = parseInt(event.target.getAttribute("data-id"));
 
-        let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
-        let { data: produto, error } = await supabase
+        const { data: produto, error: fetchError } = await supabase
           .from("produtos")
           .select("id, nome, preco")
           .eq("id", produtoId)
           .single();
 
-        if (!error && produto) {
-          carrinho.push(produto);
-          localStorage.setItem("carrinho", JSON.stringify(carrinho));
-          alert("Produto adicionado ao carrinho!");
-        } else {
-          alert("Erro ao adicionar ao carrinho.");
-        }
+        if (fetchError || !produto) return mostrarMensagem("Erro ao buscar produto.", "erro");
+
+        let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+        carrinho.push({
+          id: produto.id,
+          nome: produto.nome,
+          preco: produto.preco
+        });
+        localStorage.setItem("carrinho", JSON.stringify(carrinho));
+
+        mostrarMensagem("✅ Produto adicionado ao carrinho!");
       }
     });
 
